@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'AVCompositionDebugView_Example' do
+  pod 'AVCompositionDebugView', :path => '../'
+
+  target 'AVCompositionDebugView_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
