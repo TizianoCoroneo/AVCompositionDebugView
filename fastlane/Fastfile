@@ -1,0 +1,73 @@
+fastlane_version "2.68.0"
+
+default_platform :ios
+
+platform :ios do
+  
+  before_all do
+
+  	ENV["PROJECT_NAME"] = CredentialsManager::AppfileConfig.try_fetch_value(:project_name)
+  	ENV["REPO_NAME"] = CredentialsManager::AppfileConfig.try_fetch_value(:repo_name)
+  	ENV["API_TOKEN"] = CredentialsManager::AppfileConfig.try_fetch_value(:api_token)
+  end
+
+  desc "Runs all the tests"
+  lane :test do
+    cocoapods(podfile: "Example/")
+
+    scan(workspace: "Example/#{ENV["PROJECT_NAME"]}.xcworkspace", scheme: "#{ENV["PROJECT_NAME"]}-Example", clean: true)
+    
+    pod_lib_lint(allow_warnings: false, verbose: false)
+  end
+
+  desc "Just to try the github access"
+  lane :push do
+    cocoapods(podfile: "Example/")
+
+    push_to_git_remote(
+      remote_branch: 'master',
+      force: false,
+      tags: true)
+  end
+
+  desc "Push the pod to Trunk"
+  lane :deploy do
+    cocoapods(podfile: "Example/")
+
+    current_branch = git_branch()
+    ensure_git_status_clean
+    ensure_git_branch
+
+    version = version_bump_podspec(
+      path: "#{ENV["PROJECT_NAME"]}.podspec")
+
+    jazzy
+
+    git_add(pathspec: "docs/**")
+
+    git_commit(
+      path: ["./#{ENV["PROJECT_NAME"]}.podspec", "./docs/**"], 
+      message: "Bumped to version #{version}\nUpdated docs.")
+
+    push_to_git_remote(
+      remote_branch: 'master', 
+      force: false, 
+      tags: true)
+
+    changelog = changelog_from_git_commits || "Release commit"
+
+    github_release = set_github_release(
+      repository_name: ENV["REPO_NAME"],
+      api_token: ENV[ENV["API_TOKEN"]],
+      name: version,
+      tag_name: version,
+      description: changelog,
+      commitish: current_branch || "master")
+
+    sh("git fetch --tags")
+
+    pod_push(
+      allow_warnings: false, 
+      verbose: true)
+  end
+end

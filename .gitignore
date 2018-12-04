@@ -36,3 +36,5 @@ Carthage/Build
 #
 # Pods/
 Example/Pods
+fastlane/Appfile
+Pods
