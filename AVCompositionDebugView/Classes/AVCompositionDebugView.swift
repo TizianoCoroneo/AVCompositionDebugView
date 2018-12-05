@@ -12,7 +12,7 @@ fileprivate let kGapAfterRows: CGFloat = 4
 extension NSString {
     func drawVerticallyCentered(
         in rect: CGRect,
-        withAttributes attributes: [NSAttributedStringKey: Any]?) {
+        withAttributes attributes: [NSAttributedString.Key: Any]?) {
 
         var newRect = rect
 
@@ -60,7 +60,7 @@ class AVCompositionDebugView: UIView {
         audioMixTracks = nil
         videoCompositionStages = nil
 
-        duration = CMTimeMake(1, 1) // avoid division by zero later
+        duration = CMTimeMake(value: 1, timescale: 1) // avoid division by zero later
 
         compositionTracks = extractFromComposition(composition)
         duration = CMTimeMaximum(duration, composition.duration);
@@ -89,7 +89,7 @@ class AVCompositionDebugView: UIView {
 
         style.alignment = .center
 
-        let textAttributes: [NSAttributedStringKey: Any] = [
+        let textAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.white,
             .paragraphStyle: style,
         ]
@@ -356,12 +356,12 @@ class AVCompositionDebugView: UIView {
             timeMarkerRedBandLayer.addSublayer(timeMarkerWhiteLineLayer)
 
             let scrubbingAnimation = CABasicAnimation(keyPath: "position.x")
-            scrubbingAnimation.fromValue = NSNumber(value: Float(horizontalPosition(for: kCMTimeZero)))
+            scrubbingAnimation.fromValue = NSNumber(value: Float(horizontalPosition(for: CMTime.zero)))
             scrubbingAnimation.toValue = NSNumber(value: Float(horizontalPosition(for: duration)))
             scrubbingAnimation.isRemovedOnCompletion = false
             scrubbingAnimation.beginTime = AVCoreAnimationBeginTimeAtZero
             scrubbingAnimation.duration = duration.seconds
-            scrubbingAnimation.fillMode = kCAFillModeBoth
+            scrubbingAnimation.fillMode = CAMediaTimingFillMode.both
             timeMarkerRedBandLayer.add(scrubbingAnimation, forKey: nil)
 
             let syncLayer = AVSynchronizedLayer(playerItem: currentItem)
@@ -374,7 +374,7 @@ class AVCompositionDebugView: UIView {
     func horizontalPosition(for time: CMTime) -> CGFloat {
         var seconds: CGFloat = 0
 
-        if CMTIME_IS_NUMERIC(time), time > kCMTimeZero {
+        if CMTIME_IS_NUMERIC(time), time > CMTime.zero {
             seconds = CGFloat(time.seconds)
         }
 
@@ -402,7 +402,7 @@ extension AVCompositionDebugView {
                 (layerInstruction: AVVideoCompositionLayerInstruction) -> String in
 
                 var ramp: [CGPoint] = []
-                var startTime: CMTime = kCMTimeZero
+                var startTime: CMTime = CMTime.zero
 
                 var startOpacity: Float = 1
                 var endOpacity: Float = 1
@@ -414,7 +414,7 @@ extension AVCompositionDebugView {
                     endOpacity: &endOpacity,
                     timeRange: &timeRange) {
 
-                        if startTime == kCMTimeZero, timeRange.start > kCMTimeZero {
+                        if startTime == CMTime.zero, timeRange.start > CMTime.zero {
                             ramp.append(CGPoint(x: timeRange.start.seconds, y: Double(startOpacity)))
                         }
 
@@ -442,7 +442,7 @@ extension AVCompositionDebugView {
 
             var ramp: [CGPoint] = []
 
-            var startTime: CMTime = kCMTimeZero
+            var startTime: CMTime = CMTime.zero
             var startVolume: Float = 1.0
             var endVolume: Float = 1.0
 
@@ -450,7 +450,7 @@ extension AVCompositionDebugView {
 
             while input.getVolumeRamp(for: startTime, startVolume: &startVolume, endVolume: &endVolume, timeRange: &timeRange) {
 
-                if startTime == kCMTimeZero, timeRange.start > kCMTimeZero {
+                if startTime == CMTime.zero, timeRange.start > CMTime.zero {
                     ramp.append(CGPoint(x: 0, y: 1))
                     ramp.append(CGPoint(x: timeRange.start.seconds, y: 1))
                 }
